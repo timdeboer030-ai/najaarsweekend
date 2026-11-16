@@ -1,0 +1,16 @@
+{
+  "name": "najaarsweekend-zwijnenbier",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bierteller voor het Najaarsweekend: inloggen, +1 tikken en een live dashboard. Draait op Netlify (Functions + Blobs).",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

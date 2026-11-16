@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Zwijnenbier</title>
+  <meta name="description" content="De bierteller van het Najaarsweekend — tik je biertjes en volg de roedel live.">
+  <meta name="theme-color" content="#08152f">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐗</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <!-- Herbruikbare SVG-tekeningen: wild zwijn + blik Kanon -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="canMetal" x1="0" x2="1">
+        <stop offset="0" stop-color="#9a6513"/>
+        <stop offset=".16" stop-color="#f7d27a"/>
+        <stop offset=".34" stop-color="#e3a93a"/>
+        <stop offset=".7" stop-color="#b8801f"/>
+        <stop offset=".88" stop-color="#f0c560"/>
+        <stop offset="1" stop-color="#7e530f"/>
+      </linearGradient>
+      <linearGradient id="canSilver" x1="0" x2="1">
+        <stop offset="0" stop-color="#6f7984"/>
+        <stop offset=".3" stop-color="#e9eef3"/>
+        <stop offset=".6" stop-color="#a6afb9"/>
+        <stop offset=".82" stop-color="#f4f7fa"/>
+        <stop offset="1" stop-color="#626b75"/>
+      </linearGradient>
+      <linearGradient id="boarFur" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#4b3626"/>
+        <stop offset="1" stop-color="#1d130c"/>
+      </linearGradient>
+      <linearGradient id="beerFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffd166"/>
+        <stop offset="1" stop-color="#d9861a"/>
+      </linearGradient>
+
+      <symbol id="boar" viewBox="0 0 220 130">
+        <path d="M24 58 C22 44 40 36 60 34 L70 30 L74 34 L80 26 L86 32 L92 23 L98 30 L104 20 L110 28 L116 18 L122 27 L128 21 C140 24 152 30 160 38 C170 44 182 54 196 64 L208 70 C212 72 212 80 207 82 L192 84 C188 88 182 90 176 90 C168 94 160 98 152 100 L150 124 L141 124 L138 104 L132 104 L130 124 L122 124 L120 102 C100 104 80 104 64 100 L60 124 L51 124 L48 98 L42 96 L38 124 L30 124 L28 90 C22 82 22 70 24 58 Z"/>
+        <path d="M148 35 L155 18 L163 37 Z"/>
+        <path d="M25 56 C16 55 12 62 15 69" fill="none" stroke="#3a281b" stroke-width="3" stroke-linecap="round"/>
+        <path d="M188 85 C196 84 200 77 197 70" fill="none" stroke="#f3ead2" stroke-width="3.2" stroke-linecap="round"/>
+        <circle cx="173" cy="53" r="2.6" fill="#f4b23e"/>
+      </symbol>
+
+      <symbol id="can" viewBox="0 0 60 112">
+        <path d="M9 15 Q10 8 16 6 L44 6 Q50 8 51 15 Z" fill="url(#canSilver)"/>
+        <ellipse cx="30" cy="6" rx="14" ry="2.6" fill="#c9d1da" stroke="#7d8794" stroke-width=".8"/>
+        <rect x="25" y="3.4" width="10" height="3.8" rx="1.9" fill="none" stroke="#6f7984" stroke-width="1"/>
+        <rect x="8" y="14" width="44" height="85" rx="3" fill="url(#canMetal)"/>
+        <path d="M8 98 L52 98 Q52 104 46 106 L14 106 Q8 104 8 98 Z" fill="url(#canSilver)"/>
+        <rect x="8" y="33" width="44" height="45" fill="#0c1f44"/>
+        <rect x="8" y="33" width="44" height="2.4" fill="#f7f0dd" opacity=".9"/>
+        <rect x="8" y="75.6" width="44" height="2.4" fill="#f7f0dd" opacity=".9"/>
+        <text x="30" y="49" text-anchor="middle" font-family="'Alfa Slab One', Georgia, serif" font-size="10.5" fill="#f4b23e" letter-spacing=".4">KANON</text>
+        <g fill="#f7f0dd">
+          <rect x="22" y="55" width="19" height="6" rx="3" transform="rotate(-20 30 58)"/>
+          <circle cx="27" cy="65" r="4.3" fill="none" stroke="#f7f0dd" stroke-width="1.6"/>
+          <circle cx="27" cy="65" r="1.2"/>
+        </g>
+        <text x="30" y="74" text-anchor="middle" font-family="Outfit, sans-serif" font-size="4.6" fill="#9db1c6" letter-spacing=".8">STERK BIER</text>
+        <rect x="14" y="14" width="4" height="85" fill="#fff" opacity=".22"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- Achtergrond: nachtelijk bos met wilde zwijnen en zwevende blikken -->
+  <div class="scene" id="scene" aria-hidden="true">
+    <div class="stars"></div>
+    <div class="moon"></div>
+    <div class="trees far"></div>
+    <div class="cans"></div>
+    <div class="bubbles"></div>
+    <div class="trees near"></div>
+    <div class="walkers"></div>
+    <div class="fog"></div>
+  </div>
+
+  <header class="topbar">
+    <a href="#/" class="brand">
+      <svg class="brand-boar" aria-hidden="true"><use href="#boar"/></svg>
+      <span class="brand-text">Zwijnenbier<small>Najaarsweekend</small></span>
+    </a>
+    <nav class="nav" aria-label="Hoofdmenu">
+      <a href="#/" data-route="dashboard">Dashboard</a>
+      <a href="#/mijn" data-route="mijn">Mijn bier</a>
+    </nav>
+    <div class="userchip" id="userchip"></div>
+  </header>
+
+  <main id="app" class="wrap">
+    <div class="loading"><span>🐗</span> Het bos wordt geladen…</div>
+  </main>
+
+  <footer class="footer">Geniet, maar met mate · 18+ · 🐗 Najaarsweekend</footer>
+
+  <div id="modal-root"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="confetti" aria-hidden="true"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
