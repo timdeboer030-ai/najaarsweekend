@@ -1,0 +1,13 @@
+DirectoryIndex index.html
+Options -Indexes
+
+# Config en voorbeeldbestand nooit rechtstreeks serveren
+<FilesMatch "^config(\.example)?\.php$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

@@ -426,3 +426,24 @@ form input:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
   .walker, .bubble { display: none; }
 }
+
+/* ============ Zielig zwijn & pilsvlinder ============ */
+.zielig-tag {
+  font-size: .7rem; font-weight: 800; white-space: nowrap;
+  color: #cfe0ff; background: rgba(120, 150, 210, .18); border: 1px solid rgba(160, 190, 240, .35);
+  border-radius: 6px; padding: 1px 6px;
+}
+.modal.vlinder .modal-card {
+  border-color: rgba(255, 212, 122, .6);
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(255, 212, 122, .3), transparent 70%),
+    radial-gradient(80% 60% at 50% 100%, rgba(46, 157, 104, .25), transparent 70%),
+    linear-gradient(170deg, var(--navy-800), var(--green-900));
+}
+.modal.vlinder .modal-emoji { animation: flutter .9s ease-in-out infinite; }
+@keyframes flutter {
+  0%, 100% { transform: translate(0, 0) rotate(-10deg) scaleX(1); }
+  25% { transform: translate(6px, -8px) rotate(4deg) scaleX(.7); }
+  50% { transform: translate(-4px, -14px) rotate(10deg) scaleX(1); }
+  75% { transform: translate(-8px, -6px) rotate(-4deg) scaleX(.75); }
+}

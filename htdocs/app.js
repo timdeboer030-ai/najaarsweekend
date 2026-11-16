@@ -11,8 +11,10 @@ const HOUR = 3600e3, TWO_H = 2 * HOUR, UNDO_WINDOW = 10 * 60e3;
 
 const S = { state: null, me: null, busy: false, seenFeedTs: 0, prevCounts: {}, welcomed: false };
 
+// '/api/state' → 'api.php?a=state' (PHP-backend op InfinityFree)
 async function api(path, { method = 'GET', body } = {}) {
-  const r = await fetch(path, {
+  const url = 'api.php?a=' + encodeURIComponent(path.replace(/^\/api\//, ''));
+  const r = await fetch(url, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : {},
     body: body ? JSON.stringify(body) : undefined,
@@ -58,10 +60,10 @@ function badgeIcons(ids) {
 // ================= Teksten voor pop-ups =================
 const TXT = {
   first: [
-    ['Daar is ie dan!', 'Het eerste biertje van de dag, {naam}. Het zwijn in jou is wakker. 🐗'],
+    ['Daar is ie dan!', 'Het eerste bier van de dag, {naam}. Het zwijn in jou is wakker. 🐗'],
     ['Goed begonnen…', '…is half gedronken! Eerste van de dag staat erop, {naam}.'],
     ['Pssst-klik!', '{naam} opent de dag in stijl. Proost op een mooie dag in het bos!'],
-    ['De toon is gezet', 'Eerste blikje van de dag, {naam}. De roedel kijkt trots toe.'],
+    ['De toon is gezet', 'Eerste blikje van de dag, {naam}. De rotte kijkt trots toe.'],
   ],
   hour2: [
     ['Lekker tempo!', 'Twee binnen het uur, {naam}. Het zwijn is los! 🔥'],
@@ -69,18 +71,32 @@ const TXT = {
     ['Dubbelslag', 'Twee in een uur. Het bos hoort je kanonnen, {naam}!'],
   ],
   hour3: [
-    ['Kanonnier!', 'Drie in één uur, {naam}. Respect van de hele roedel. 💥'],
+    ['Kanonnier!', 'Drie in één uur, {naam}. Respect van de hele rotte. 💥'],
     ['Volle salvo', '{naam} vuurt er drie af binnen het uur. Dat is kanonnenwerk!'],
   ],
   hourN: [
-    ['Leider van de roedel', '{n} in een uur?! {naam}, jij bent een legende. 👑'],
+    ['Leider van de rotte', '{n} in een uur?! {naam}, jij bent een legende. 👑'],
     ['Wildzwijn-modus', '{n} binnen het uur, {naam}. Het bos buigt voor je!'],
   ],
   drought: [
     ['Het is stil in het bos…', 'Hé {naam}, al {tijd} droog! Het zwijn heeft dorst. Tijd voor een blikje? 🍺'],
-    ['De roedel mist je!', '{naam}, al {tijd} geen biertje. De rest loopt in, kom op!'],
-    ['Wakker worden, zwijn!', '{tijd} zonder biertje, {naam}. Eén blikje en je zit weer in de race.'],
+    ['De rotte mist je!', '{naam}, al {tijd} geen bier. De rest loopt in, kom op!'],
+    ['Wakker worden, zwijn!', '{tijd} zonder bier, {naam}. Eén blikje en je zit weer in de race.'],
   ],
+  podium: {
+    1: [
+      ['Pilsvlinder-alarm! 🦋', 'Er fladdert een pilsvlinder over het bos… {naam} landt op de GOUDEN plek! De hele rotte kijkt omhoog. 👑'],
+      ['Koning(in) van de rotte', 'De pilsvlinders dansen om je kop, {naam}: jij staat op nummer 1!'],
+    ],
+    2: [
+      ['Pilsvlinders in je buik? 🦋', '{naam} fladdert naar plek 2 op het podium. Het goud is binnen vleugelbereik!'],
+      ['Zilveren vleugels', 'Een pilsvlinder brengt {naam} naar de tweede plek. Nog één slok en je vliegt naar de top!'],
+    ],
+    3: [
+      ['Er landt een pilsvlinder! 🦋', '{naam} staat op het podium: plek 3! Brons glimt ook prima in het maanlicht.'],
+      ['Podiumzwijn!', 'Fladder fladder… {naam} pakt plek 3. Welkom bij de top van de rotte!'],
+    ],
+  },
   welcome: ['Welkom in het bos!', 'Je teller staat nog op 0, {naam}. Tik op Proost zodra je eerste blikje open is. 🍻'],
 };
 
@@ -257,11 +273,11 @@ function groupCheer(s, ms) {
   const { all, lastHour, today } = s.totals;
   if (!s.users.length) return 'Het bos is nog leeg. Wie meldt zich als eerste zwijn?';
   if (!all) return 'Het bos is nog droog. Wie opent het eerste blik?';
-  if (lastHour >= 6) return `Het bos staat in vuur en vlam: ${lastHour} biertjes in het afgelopen uur! 🔥`;
+  if (lastHour >= 6) return `Het bos staat in vuur en vlam: ${lastHour} bier in het afgelopen uur! 🔥`;
   if (!lastHour) return 'Het is even stil in het bos… tijd voor een rondje? 🍻';
   const togo = ms.next - all;
   if (togo <= 3) return `Bijna! Nog maar ${togo} tot de ${ms.next}. Wie pakt de mijlpaal? 🏁`;
-  return today ? `Lekker bezig, roedel! Al ${today} vandaag. Nog ${togo} tot de ${ms.next}.` : `Nieuwe dag, nieuwe kansen. Nog ${togo} tot de ${ms.next}!`;
+  return today ? `Lekker bezig, rotte! Al ${today} vandaag. Nog ${togo} tot de ${ms.next}.` : `Nieuwe dag, nieuwe kansen. Nog ${togo} tot de ${ms.next}!`;
 }
 function glassSvg(pct) {
   const top = 14, bottom = 178;
@@ -317,8 +333,16 @@ function podium(users) {
   }).join('')}</div>`;
 }
 
+// Laatste plek = zielig zwijn (alleen als niet iedereen gelijk staat)
+function isZielig(u, users) {
+  if (users.length < 2) return false;
+  const totals = users.map((x) => x.total);
+  const min = Math.min(...totals), max = Math.max(...totals);
+  return min < max && u.total === min;
+}
+
 function userStatus(u) {
-  if (!u.lastTs) return `<span class="st-new">Nog geen biertje. De teller wacht!</span>`;
+  if (!u.lastTs) return `<span class="st-new">Nog geen bier. De teller wacht!</span>`;
   const since = Date.now() - u.lastTs;
   if (u.lastHour >= 3) return `<span class="st-fire">💥 ${u.lastHour} dit uur, kanonnier!</span>`;
   if (u.lastHour === 2) return `<span class="st-fire">🔥 2 dit uur</span>`;
@@ -342,14 +366,14 @@ function renderDashboard() {
       <div>
         <div class="eyebrow">Groepstotaal · Najaarsweekend</div>
         <div class="big-number" data-count="${totals.all}" data-key="all">${S.prevCounts.all ?? 0}</div>
-        <div class="big-label">biertjes weggewerkt door de roedel</div>
+        <div class="big-label">bier weggewerkt door de rotte</div>
         <p class="hero-cheer">${esc(groupCheer(s, ms))}</p>
         <div class="milestone">
           <div class="milestone-bar"><i style="width:${(pct * 100).toFixed(1)}%"></i></div>
           <div class="milestone-labels"><span>${ms.prev}</span><span>Volgende mijlpaal: <b>${ms.next}</b></span></div>
         </div>
         ${S.me
-          ? `<a class="btn btn-amber" href="#/mijn">🍺 Biertje erbij</a>`
+          ? `<a class="btn btn-amber" href="#/mijn">🍺 Bier erbij</a>`
           : `<a class="btn btn-amber" href="#/login">🐗 Doe mee: log in</a>`}
       </div>
       <div class="hero-glass">${glassSvg(pct)}</div>
@@ -359,7 +383,7 @@ function renderDashboard() {
       ${stat('today', 'Vandaag', totals.today, '🍺', 'sinds 06:00')}
       ${stat('hour', 'Afgelopen uur', totals.lastHour, '🔥', totals.lastHour ? 'het bos leeft' : 'tijd voor een rondje')}
       ${stat('users', 'Zwijnen', users.length, '🐗', `${totals.activeToday} vandaag actief`)}
-      ${stat('avg', 'Gemiddeld', avg, '📊', 'biertjes per zwijn', false)}
+      ${stat('avg', 'Gemiddeld', avg, '📊', 'bier per zwijn', false)}
     </section>
 
     <div class="grid">
@@ -369,13 +393,13 @@ function renderDashboard() {
           ${podium(users)}
         </section>
         <section class="card">
-          <h2 class="card-title">🐗 De hele roedel <small>${users.length} ${users.length === 1 ? 'zwijn' : 'zwijnen'}</small></h2>
+          <h2 class="card-title">🐗 De hele rotte <small>${users.length} ${users.length === 1 ? 'zwijn' : 'zwijnen'}</small></h2>
           ${users.length ? `<ol class="ranking">${users.map((u, i) => `
             <li class="row${u.id === meId ? ' is-me' : ''}">
               <span class="rank">${i + 1}</span>
               ${avatar(u.name)}
               <div>
-                <div class="row-top"><b>${esc(u.name)}</b>${u.id === meId ? '<span class="me-tag">JIJ</span>' : ''}<span class="row-badges">${badgeIcons(u.badges)}</span></div>
+                <div class="row-top"><b>${esc(u.name)}</b>${u.id === meId ? '<span class="me-tag">JIJ</span>' : ''}${isZielig(u, users) ? '<span class="zielig-tag">🥺 Zielig zwijn</span>' : ''}<span class="row-badges">${badgeIcons(u.badges)}</span></div>
                 <div class="bar"><i style="width:${((u.total / maxTotal) * 100).toFixed(1)}%"></i></div>
                 <div class="row-sub"><span>Vandaag <b>${u.today}</b></span>${userStatus(u)}</div>
               </div>
@@ -392,8 +416,8 @@ function renderDashboard() {
             const ico = f.inHour >= 3 ? '💥' : f.inHour === 2 ? '🔥' : f.dayNum === 1 ? '🌅' : '🍺';
             const what = f.inHour >= 3 ? `pakte nr. ${f.inHour} binnen het uur. Kanonnier!`
               : f.inHour === 2 ? 'zit op tempo: 2e binnen het uur'
-              : f.dayNum === 1 ? 'opende de dag met een biertje'
-              : `opende biertje nr. ${f.dayNum} van vandaag`;
+              : f.dayNum === 1 ? 'opende de dag met een bier'
+              : `opende bier nr. ${f.dayNum} van vandaag`;
             return `<li class="${newestSeen && f.ts > newestSeen ? 'new' : ''}"><span class="feed-ico">${ico}</span><div><b>${esc(f.name)}</b> ${what}<small>${timeAgo(f.ts)} · ${clock(f.ts)}</small></div></li>`;
           }).join('')}</ul>`
           : `<p class="muted">Nog geen activiteit. Het eerste blikje verschijnt hier live.</p>`}
@@ -427,8 +451,9 @@ function renderMine() {
   const gap = ahead ? ahead.total - u.total + 1 : 0;
   const motivation = !u.total
     ? 'Je teller staat nog op nul. Tijd om het bos wakker te maken!'
-    : idx === 0 ? 'Jij leidt de roedel! Houd die kroon vast. 👑'
-    : `Nog ${gap} ${gap === 1 ? 'biertje' : 'biertjes'} om ${ahead.name} in te halen!`;
+    : idx === 0 ? 'Jij leidt de rotte! Houd die kroon vast. 👑'
+    : isZielig(u, s.users) ? `Jij bent nu het zielige zwijn 🥺 Nog ${gap} bier om ${ahead.name} in te halen!`
+    : `Nog ${gap} bier om ${ahead.name} in te halen!`;
 
   app.innerHTML = `
     <section class="mine-hero card">
@@ -437,7 +462,7 @@ function renderMine() {
         <div><div class="eyebrow">Proost,</div><h1>${esc(me.user.name)}</h1></div>
         <div class="mine-rank">${idx >= 0 ? '#' + (idx + 1) : '–'}<small>positie</small></div>
       </div>
-      <button class="proost" id="proost" aria-label="Biertje toevoegen">
+      <button class="proost" id="proost" aria-label="Bier toevoegen">
         <span class="proost-ring"></span>
         <svg class="proost-can" aria-hidden="true"><use href="#can"/></svg>
         <span class="proost-label">Proost!<b>+1</b></span>
@@ -448,12 +473,12 @@ function renderMine() {
         <div><b data-count="${u.lastHour}" data-key="m-hour">${S.prevCounts['m-hour'] ?? 0}</b><span>afgelopen uur</span></div>
         <div><b data-count="${u.total}" data-key="m-total">${S.prevCounts['m-total'] ?? 0}</b><span>totaal</span></div>
       </div>
-      ${canUndo ? `<button class="link-btn" id="undo">↩︎ Verkeerd getikt? Biertje van ${clock(last.ts)} ongedaan maken</button>` : ''}
+      ${canUndo ? `<button class="link-btn" id="undo">↩︎ Verkeerd getikt? Bier van ${clock(last.ts)} ongedaan maken</button>` : ''}
     </section>
 
     <div class="grid">
       <section class="card">
-        <h2 class="card-title">🕒 Jouw biertjes vandaag <small>${todays.length}</small></h2>
+        <h2 class="card-title">🕒 Jouw bier vandaag <small>${todays.length}</small></h2>
         ${todays.length
           ? `<div class="chips">${todays.map((b, i) => `<span class="chip"><b>#${i + 1}</b> 🍺 ${clock(b.ts)}</span>`).join('')}</div>`
           : '<p class="muted">Nog niks vandaag. De eerste levert je een compliment op 😉</p>'}
@@ -491,6 +516,7 @@ async function drink() {
     S.busy = false;
     if (route() === 'mijn') renderMine();
     beerPopups(r);
+    checkPodium();
   } catch (e) {
     S.busy = false;
     btn.disabled = false;
@@ -522,7 +548,7 @@ async function undo() {
   if (S.busy) return;
   S.busy = true;
   try {
-    await api('/api/beer/last', { method: 'DELETE' });
+    await api('/api/undo', { method: 'POST' });
     await Promise.all([loadMe(), loadState()]);
     toast('Teruggedraaid. Geen zorgen, het zwijn vergeeft je 🐗');
   } catch (e) {
@@ -530,6 +556,22 @@ async function undo() {
   }
   S.busy = false;
   if (route() === 'mijn') renderMine();
+}
+
+// Pilsvlinder-melding: elke keer dat je op het podium komt of een podiumplek stijgt.
+function checkPodium() {
+  if (!S.me || !S.state) return;
+  const users = S.state.users;
+  const idx = users.findIndex((u) => u.id === S.me.user.id);
+  const place = idx >= 0 && idx < 3 && users[idx].total > 0 ? idx + 1 : 0;
+  const key = 'zwijn-podium-' + S.me.user.id;
+  let prev = null;
+  try { const v = localStorage.getItem(key); prev = v === null ? null : Number(v); } catch {}
+  try { localStorage.setItem(key, String(place)); } catch {}
+  if (place && (prev === null || prev === 0 || place < prev)) {
+    const [title, text] = pick(TXT.podium[place]);
+    popup({ kind: 'vlinder', emoji: '🦋', kicker: `Pilsvlinder-melding · plek ${place}`, title, text: fillIn(text, { naam: firstName(S.me.user.name) }), confetti: 'big', button: 'Fladderen maar! 🍺' });
+  }
 }
 
 // 2 uur niks gedronken? Aanmoedigen (één keer per droge periode van 2 uur).
@@ -562,7 +604,7 @@ function renderLogin(mode = 'login', name = '') {
     <section class="auth card">
       <svg class="auth-boar" aria-hidden="true"><use href="#boar"/></svg>
       <h1 class="auth-title">Welkom in het bos</h1>
-      <p class="muted">Log in om je biertjes bij te houden. Nieuw hier? Maak in 10 seconden een account.</p>
+      <p class="muted">Log in om je bier bij te houden. Nieuw hier? Maak in 10 seconden een account.</p>
       <div class="tabs" role="tablist">
         <button type="button" role="tab" data-mode="login" class="${mode === 'login' ? 'active' : ''}" aria-selected="${mode === 'login'}">Inloggen</button>
         <button type="button" role="tab" data-mode="register" class="${mode === 'register' ? 'active' : ''}" aria-selected="${mode === 'register'}">Nieuw zwijn</button>
@@ -574,7 +616,7 @@ function renderLogin(mode = 'login', name = '') {
         <label>Wachtwoord
           <input name="pin" type="password" autocomplete="${mode === 'login' ? 'current-password' : 'new-password'}" required minlength="4" maxlength="12" placeholder="••••">
         </label>
-        ${mode === 'register' ? '<p class="form-hint">Kies een korte code van minimaal 4 tekens. Makkelijk te onthouden, ook na een paar biertjes 😉</p>' : ''}
+        ${mode === 'register' ? '<p class="form-hint">Kies een korte code van minimaal 4 tekens. Makkelijk te onthouden, ook na een paar bier 😉</p>' : ''}
         <div class="form-error" role="alert"></div>
         <button class="btn btn-amber btn-block" type="submit">${mode === 'login' ? 'Inloggen' : 'Account maken & proosten'}</button>
       </form>
@@ -598,7 +640,7 @@ function renderLogin(mode = 'login', name = '') {
       await api(`/api/${mode}`, { method: 'POST', body: data });
       await Promise.all([loadMe(), loadState()]);
       location.hash = '#/mijn';
-      setTimeout(checkDrought, 600);
+      setTimeout(() => { checkDrought(); checkPodium(); }, 600);
     } catch (ex) {
       err.textContent = ex.message;
       btn.disabled = false;
@@ -639,6 +681,7 @@ async function poll() {
     if (r === 'dashboard' || r === '') renderDashboard();
     else if (r === 'mijn' && S.me && !S.busy) renderMine();
     checkDrought();
+    checkPodium();
   } catch {}
 }
 
@@ -652,7 +695,7 @@ async function init() {
     return;
   }
   render();
-  setTimeout(checkDrought, 1200);
+  setTimeout(() => { checkDrought(); checkPodium(); }, 1200);
   setInterval(poll, 15000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) poll(); });
 }

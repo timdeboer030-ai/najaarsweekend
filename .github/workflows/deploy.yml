@@ -1,0 +1,28 @@
+name: Deploy naar InfinityFree
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload htdocs via FTP
+        if: env.FTP_SERVER != ''
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./htdocs/
+          server-dir: /htdocs/
+
+      - name: Nog geen FTP-gegevens ingesteld
+        if: env.FTP_SERVER == ''
+        run: echo "Stel FTP_SERVER, FTP_USERNAME en FTP_PASSWORD in als repository secrets om automatisch te deployen."
