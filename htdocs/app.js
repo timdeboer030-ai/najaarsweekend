@@ -97,6 +97,31 @@ const TXT = {
       ['Podiumzwijn!', 'Fladder fladder… {naam} pakt plek 3. Welkom bij de top van de rotte!'],
     ],
   },
+  // Elke 7 bier: een eretitel (oplopend) + drie lange complimenten
+  zevenTitels: [
+    ['🦋', 'De Pilsvlinder ontpopt zich'],
+    ['💥', 'Kanonnenschieter van het Bos'],
+    ['👑', 'De Dorstige Koning'],
+    ['🐗', 'Na-zaad van de Grote Koning'],
+    ['🎩', 'Illustige Pilsbaas'],
+    ['🌟', 'Levende Legende van de Rotte'],
+  ],
+  zeven: [
+    'Zeven keer zeven tellen de oude eiken, en vanavond tellen ze voor jou, {naam}. Diep in het bos buigen de takken en fluisteren de wilde zwijnen je naam. De Pilsvlinder is uit zijn cocon gekropen, en hij heeft jouw gezicht.',
+    'Hoor je dat? Dat is het geluid van {n} lege blikken die samen een ode zingen aan hun Dorstige Koning. Geen gouden kroon past jou beter dan het schuim op je bovenlip, {naam}.',
+    'De kroniekschrijvers van de rotte moesten een nieuwe bladzijde openslaan. Er staat maar één zin op: "{naam}, na-zaad van de Grote Koning, dronk {n} bier, en het bos was trots."',
+    'Lang geleden liep er een zwijn door dit bos dat zo dorstig was dat de beken zich voor hem verstopten. Men noemde hem de Grote Koning. Vanavond weten we eindelijk wie zijn erfgenaam is: {naam}.',
+    'Kanonnenschieter {naam}! Elk blik dat jij opent klinkt als een saluutschot over de heuvels. De dorst is verslagen, de vijand is gevlucht, en toch laad jij doodleuk het volgende kanon.',
+    'Illustige Pilsbaas, wij groeten u. Uw kantoor is het bos, uw bureau een boomstronk, uw handtekening een tevreden boer. {n} bier, en geen enkele vergadering gemist.',
+    'Als bier een taal was, sprak {naam} hem inmiddels vloeiend, met een poëtische ondertoon en een vleugje schuim. {n} hoofdstukken geschreven, en het boek is nog lang niet uit.',
+    'De sterren boven het kamp schijnen ineens net iets feller. Sterrenkundigen staan voor een raadsel, maar de rotte weet beter: dat is het licht van {naam}, die zojuist bier nummer {n} opende.',
+    'Er zijn zwijnen die drinken, en er zijn zwijnen over wie liederen worden gezongen. {naam}, warm je stembanden maar vast op, want vanaf vanavond ben jij het refrein.',
+    'Zelfs de maan draaide even haar hoofd om te kijken. {n} bier! De Pilsvlinder fladdert drie eererondjes om je heen en landt dan eerbiedig op je schouder.',
+    'Wie zeven keer proost, proost niet meer gewoon: die zegent. {naam}, elke slok van jou is vanaf nu officieel een ceremonie, en wij zijn je dankbare toeschouwers.',
+    'In de stamboom van de rotte staat jouw naam voortaan met gouden inkt geschreven, {naam}. Naast de Grote Koning, boven de Pilsvlinder, en ruim voor iedereen die nu nog water drinkt.',
+    'Het kanon is warmgeschoten, de blikken liggen als trofeeën in het mos, en ergens in de verte knikt een oude keiler goedkeurend. {n} bier, {naam}. Dit is hoe legendes beginnen.',
+    'Weet je wat ze zeggen over iemand die {n} bier drinkt? Niks, want ze zijn sprakeloos. De hele rotte staat met open bek naar je te kijken, {naam}.',
+  ],
   welcome: ['Welkom in het bos!', 'Je teller staat nog op 0, {naam}. Tik op Proost zodra je eerste blikje open is. 🍻'],
 };
 
@@ -118,7 +143,7 @@ function nextPopup() {
         <div class="modal-emoji">${p.emoji}</div>
         <div class="modal-kicker">${esc(p.kicker)}</div>
         <h2 id="modal-title">${esc(p.title)}</h2>
-        <p>${esc(p.text)}</p>
+        ${p.lines ? `<div class="compliments">${p.lines.map((l) => `<p>${esc(l)}</p>`).join('')}</div>` : `<p>${esc(p.text)}</p>`}
         <button class="btn btn-amber btn-block">${esc(p.button || 'Proost! 🍻')}</button>
       </div>
     </div>`;
@@ -527,6 +552,15 @@ async function drink() {
 function beerPopups(r) {
   const naam = firstName(S.me.user.name);
   let shown = false;
+  if (r.total > 0 && r.total % 7 === 0) {
+    const level = r.total / 7;
+    const [emoji, titel] = TXT.zevenTitels[Math.min(level, TXT.zevenTitels.length) - 1];
+    const pool = TXT.zeven.slice();
+    const lines = [];
+    for (let i = 0; i < 3 && pool.length; i++) lines.push(fillIn(pool.splice(Math.floor(Math.random() * pool.length), 1)[0], { naam, n: r.total }));
+    popup({ kind: 'zeven', emoji, kicker: `${r.total} bier · zeven-salvo`, title: titel, lines, confetti: 'big', button: 'Ik neem de eer in ontvangst 👑' });
+    shown = true;
+  }
   if (r.firstOfDay) {
     const [title, text] = pick(TXT.first);
     popup({ emoji: '🌅', kicker: 'Eerste van de dag', title, text: fillIn(text, { naam }), confetti: true });
